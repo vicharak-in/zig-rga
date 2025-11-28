@@ -1,6 +1,7 @@
 const std = @import("std");
-const rga_utils = @import("RgaUtils.zig");
-const im2d = @import("im2d.zig");
+const rga = @import("rga");
+const rga_utils = rga.RgaUtils;
+const im2d = rga.im2d;
 
 pub fn main() !void {
     std.debug.print("RGA version: {d}\n", .{im2d.RGA_API_REVISION_VERSION});
@@ -16,10 +17,6 @@ pub fn main() !void {
     var dst_img: im2d.rga_buffer_t = undefined;
     var src_handle: im2d.rga_buffer_handle_t = 0;
     var dst_handle: im2d.rga_buffer_handle_t = 0;
-    _ = &src_img;
-    _ = &dst_img;
-    _ = &src_handle;
-    _ = &dst_handle;
 
     const src_width: usize = 1280;
     const src_height: usize = 720;
@@ -29,15 +26,11 @@ pub fn main() !void {
     const dst_height: usize = 270;
     const dst_format: usize = im2d.RK_FORMAT_RGB_888;
 
-    var src_buf_size: usize = @intFromFloat(src_width * src_height * rga_utils.get_bpp_from_format(src_format));
-    var dst_buf_size: usize = @intFromFloat(dst_width * dst_height * rga_utils.get_bpp_from_format(dst_format));
-    _ = &src_buf_size;
-    _ = &dst_buf_size;
+    const src_buf_size: usize = @intFromFloat(src_width * src_height * rga_utils.get_bpp_from_format(src_format));
+    const dst_buf_size: usize = @intFromFloat(dst_width * dst_height * rga_utils.get_bpp_from_format(dst_format));
 
     src_img = std.mem.zeroes(im2d.rga_buffer_t);
     dst_img = std.mem.zeroes(im2d.rga_buffer_t);
-
-    std.debug.print("src_ptr: {*}, size: {d}\n", .{ src_buf.ptr, src_buf_size });
 
     src_buf = try alloc.alloc(u8, src_buf_size);
     defer alloc.free(src_buf);
@@ -54,14 +47,11 @@ pub fn main() !void {
     param.height = src_height;
     param.format = im2d.RK_FORMAT_RGB_888;
 
-    // const src_ptr: *anyopaque = @ptrCast(@alignCast(src_buf.ptr));
-    // const dst_ptr: *anyopaque = @ptrCast(@alignCast(dst_buf.ptr));
     src_handle = im2d.importbuffer_virtualaddr(src_buf.ptr, &param);
     dst_handle = im2d.importbuffer_virtualaddr(dst_buf.ptr, &param);
 
     if (src_handle == 0 or dst_handle == 0) {
         std.debug.print("importbuffer failed!\n", .{});
-        // goto release_buffer;
     }
 
     src_img = im2d.wrapbuffer_handle(src_handle, src_width, src_height, src_format);
