@@ -1535,7 +1535,10 @@ pub inline fn impyramid(src: anytype, dst: anytype, direction: anytype) @TypeOf(
     _ = &direction;
     return imresize_t(src, dst, if (direction == IM_UP_SCALE) @as(f64, 0.5) else @as(c_int, 2), if (direction == IM_UP_SCALE) @as(f64, 0.5) else @as(c_int, 2), IM_INTERP_DEFAULT, @as(c_int, 1));
 }
-pub const imcvtcolor = @compileError("unable to translate C expr: expected ')' instead got '...'");
+pub fn imcvtcolor(src: rga_buffer_t, dst: rga_buffer_t, sfmt: c_int, dfmt: c_int, mode: c_int) IM_STATUS {
+    return imcvtcolor_t(src, dst, sfmt, dfmt, mode, 1);
+}
+
 // ./include/im2d_single.h:633:9
 pub fn imcrop(src: rga_buffer_t, dst: rga_buffer_t, rect: im_rect) IM_STATUS {
     return imcrop_t(src, dst, rect, 1);

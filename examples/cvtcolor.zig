@@ -22,9 +22,9 @@ pub fn main() !void {
     const src_height: usize = 720;
     const src_format: usize = im2d.RK_FORMAT_RGB_888;
 
-    const dst_width: usize = 480;
-    const dst_height: usize = 270;
-    const dst_format: usize = im2d.RK_FORMAT_RGB_888;
+    const dst_width: usize = 1280;
+    const dst_height: usize = 720;
+    const dst_format: usize = im2d.RK_FORMAT_BGR_888;
 
     const src_buf_size: usize = @intFromFloat(src_width * src_height * rga_utils.get_bpp_from_format(src_format));
     const dst_buf_size: usize = @intFromFloat(dst_width * dst_height * rga_utils.get_bpp_from_format(dst_format));
@@ -42,13 +42,20 @@ pub fn main() !void {
     const file_size = try input_file.getEndPos();
     _ = try input_file.read(src_buf[0..file_size]);
 
-    var param: im2d.im_handle_param_t = undefined;
-    param.width = src_width;
-    param.height = src_height;
-    param.format = im2d.RK_FORMAT_RGB_888;
+    var src_param = im2d.im_handle_param_t{
+        .width = src_width,
+        .height = src_height,
+        .format = src_format,
+    };
 
-    src_handle = im2d.importbuffer_virtualaddr(src_buf.ptr, &param);
-    dst_handle = im2d.importbuffer_virtualaddr(dst_buf.ptr, &param);
+    var dst_param = im2d.im_handle_param_t{
+        .width = dst_width,
+        .height = dst_height,
+        .format = dst_format,
+    };
+
+    src_handle = im2d.importbuffer_virtualaddr(src_buf.ptr, &src_param);
+    dst_handle = im2d.importbuffer_virtualaddr(dst_buf.ptr, &dst_param);
 
     if (src_handle == 0 or dst_handle == 0) {
         std.debug.print("importbuffer failed!\n", .{});
@@ -57,21 +64,15 @@ pub fn main() !void {
     src_img = im2d.wrapbuffer_handle(src_handle, src_width, src_height, src_format);
     dst_img = im2d.wrapbuffer_handle(dst_handle, dst_width, dst_height, dst_format);
 
-    var crop_rec: im2d.im_rect = undefined;
-    crop_rec.x = 256;
-    crop_rec.y = 256;
-    crop_rec.width = 480;
-    crop_rec.height = 270;
-    ret = im2d.imcrop(src_img, dst_img, crop_rec);
+    ret = im2d.imcvtcolor(src_img, dst_img, src_format, dst_format, im2d.IM_COLOR_SPACE_DEFAULT);
 
     if (ret != im2d.IM_STATUS_SUCCESS) {
-        std.debug.print("imcrop failed\n", .{});
+        std.debug.print("imcvtcolor failed\n", .{});
         return error.rgaError;
     }
 
     const out_file = try std.fs.cwd().createFile("output.bin", .{});
     defer out_file.close();
+
     try out_file.writeAll(dst_buf);
-    const stat = try out_file.stat();
-    std.debug.print("Output file size: {d} bytes\n", .{stat.size});
 }

@@ -2,7 +2,7 @@
 
 Zig bindings for Rockchip RGA tested on RK3588 SOC.
 
-Bindings were generated using zig translate-c, but several RGA macro based APIs needs to be translated manually because currently zig translate-c does not support macro conversion.
+Bindings were generated using zig translate-c, but several RGA macro based APIs needs to be translated manually as zig translate-c does not support macro conversion.
 See `examples/crop.zig` for a demo example.
 
 ## Requirements
